@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block title %}Cart — LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .cart-layout {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .cart-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .cart-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 1.2rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    transition: border-color 0.2s;
+  }
+
+  .cart-item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .cart-item-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .cart-item-price {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+
+  .cart-item-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.7rem;
+  }
+
+  .qty-form {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .qty-input {
+    width: 55px !important;
+    text-align: center;
+    padding: 0.35rem 0.5rem !important;
+  }
+
+  .qty-btn {
+    padding: 0.35rem 0.7rem;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .qty-btn:hover {
+    border-color: var(--accent);
+  }
+
+  .cart-item-total {
+    text-align: right;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  .rm-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s;
+  }
+
+  .rm-btn:hover {
+    color: var(--danger);
+  }
+
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: sticky;
+    top: calc(var(--nav-h) + 1rem);
+  }
+
+  .summary-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 1.2rem;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.7rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .summary-row.total {
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.4rem;
+  }
+
+  .checkout-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    background: var(--accent);
+    color: #0d0d0f;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1.2rem;
+    transition: background 0.2s;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .checkout-btn:hover {
+    background: var(--accent2);
+    color: #0d0d0f;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-cart .icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-cart h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Your Cart</h1>
+
+{% if items %}
+<div class="cart-layout">
+  <div class="cart-items">
+    {% for item in items %}
+    <div class="cart-item">
+      <img src="{{ item.image or 'https://via.placeholder.com/80' }}" alt="{{ item.name }}" class="cart-item-img" />
+
+      <div>
+        <div class="cart-item-name">{{ item.name }}</div>
+        <div class="cart-item-price">₹{{ "{:,}".format(item.price|int) }} each</div>
+        <div class="cart-item-controls">
+          <form class="qty-form" method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="qty-input" />
+            <button type="submit" class="qty-btn">↻</button>
+          </form>
+          <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="rm-btn">✕ Remove</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="cart-item-total">₹{{ "{:,}".format((item.price * item.quantity)|int) }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-title">Order Summary</div>
+    <div class="summary-row"><span>Subtotal</span><span>₹{{ "{:,}".format(total|int) }}</span></div>
+    <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+    <div class="summary-row total">
+      <span>Total</span>
+      <span>₹{{ "{:,}".format(total|int) }}</span>
+    </div>
+    <a href="{{ url_for('checkout') }}" class="checkout-btn">Proceed to Checkout →</a>
+    <a href="{{ url_for('shop') }}"
+      style="display:block; text-align:center; margin-top:0.8rem; color:var(--muted); font-size:0.85rem; text-decoration:none;">←
+      Continue Shopping</a>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-cart">
+  <div class="icon">🛒</div>
+  <h2>Your cart is empty</h2>
+  <p style="margin-bottom:1.5rem">Looks like you haven't added anything yet.</p>
+  <a href="{{ url_for('shop') }}" class="btn btn-primary">Start Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

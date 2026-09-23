@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+{% block title %}Custom Order ♡ LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .custom-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .custom-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-card {
+    background: var(--surface);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+  }
+
+  .form-card h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.7rem;
+    color: var(--brown);
+    margin-bottom: 1.5rem;
+    line-height: 1.8;
+    text-shadow: 2px 2px 0 var(--pink);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  @media (max-width: 500px) {
+    .form-row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .color-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.4rem;
+  }
+
+  .color-chip {
+    width: 32px;
+    height: 32px;
+    border: var(--pixel) solid var(--brown);
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+  }
+
+  .color-chip:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 var(--brown);
+  }
+
+  .color-chip.selected::after {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    color: var(--brown);
+    font-weight: 900;
+    display: grid;
+    place-items: center;
+  }
+
+  .selected-colors {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    min-height: 1.2rem;
+  }
+
+  .char-count {
+    text-align: right;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.4rem;
+  }
+
+  .dm-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--lavender);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: 4px 4px 0 var(--brown);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+    color: var(--brown);
+    cursor: pointer;
+    transition: all 0.1s;
+    letter-spacing: 0.5px;
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+  }
+
+  .dm-btn:hover {
+    background: var(--lav-dark);
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--brown);
+  }
+
+  /* Sidebar info */
+  .info-card {
+    background: var(--pink);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .info-card h3 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+    line-height: 1.8;
+  }
+
+  .info-item {
+    display: flex;
+    gap: 0.7rem;
+    margin-bottom: 0.8rem;
+    font-size: 0.85rem;
+    color: var(--brown);
+    font-weight: 700;
+    align-items: flex-start;
+  }
+
+  .info-item span {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+
+  .process-card {
+    background: var(--mint);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+  }
+
+  .process-card h3 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+    line-height: 1.8;
+  }
+
+  .step {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 0.8rem;
+    align-items: flex-start;
+    font-size: 0.85rem;
+    color: var(--brown);
+    font-weight: 700;
+  }
+
+  .step-num {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    background: var(--brown);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  /* Preview message box */
+  .msg-preview {
+    background: var(--cream);
+    border: var(--pixel) solid var(--border);
+    padding: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 1rem;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    font-family: 'Nunito', sans-serif;
+    min-height: 80px;
+  }
+
+  .preview-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.4rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+    letter-spacing: 1px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">✉ Custom Order</h1>
+
+<div class="custom-layout">
+
+  <!-- Form -->
+  <div class="form-card">
+    <h2>tell me what you<br />want to create ♡</h2>
+
+    <div class="form-group">
+      <label>Your Name</label>
+      <input type="text" id="f-name" placeholder="Your name" />
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Wrist Size</label>
+        <select id="f-size">
+          <option value="">Select size</option>
+          <option value="XS (13-14cm)">XS — 13-14 cm</option>
+          <option value="S (15-16cm)">S — 15-16 cm</option>
+          <option value="M (17-18cm)">M — 17-18 cm</option>
+          <option value="L (19-20cm)">L — 19-20 cm</option>
+          <option value="XL (21cm+)">XL — 21 cm+</option>
+          <option value="not sure">Not sure</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quantity</label>
+        <select id="f-qty">
+          <option value="1">1 bracelet</option>
+          <option value="2">2 bracelets</option>
+          <option value="3">3 bracelets</option>
+          <option value="4-5">4–5 bracelets</option>
+          <option value="6+">6+ (bulk order)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Color Palette</label>
+      <div class="color-chips" id="color-chips">
+        <div class="color-chip" style="background:#FFB3C6;" data-name="Baby Pink" title="Baby Pink"></div>
+        <div class="color-chip" style="background:#FF85A1;" data-name="Hot Pink" title="Hot Pink"></div>
+        <div class="color-chip" style="background:#C9B8E8;" data-name="Lavender" title="Lavender"></div>
+        <div class="color-chip" style="background:#B8E8D0;" data-name="Mint" title="Mint"></div>
+        <div class="color-chip" style="background:#FFF0DC;" data-name="Cream" title="Cream"></div>
+        <div class="color-chip" style="background:#8B5E52;" data-name="Brown" title="Brown"></div>
+        <div class="color-chip" style="background:#FFD700;" data-name="Yellow" title="Yellow"></div>
+        <div class="color-chip" style="background:#87CEEB;" data-name="Sky Blue" title="Sky Blue"></div>
+        <div class="color-chip" style="background:#98FB98;" data-name="Pastel Green" title="Pastel Green"></div>
+        <div class="color-chip" style="background:#DDA0DD;" data-name="Plum" title="Plum"></div>
+        <div class="color-chip" style="background:#FFFFFF; border-color:#ccc;" data-name="White" title="White"></div>
+        <div class="color-chip" style="background:#222222;" data-name="Black" title="Black"></div>
+      </div>
+      <div class="selected-colors" id="selected-colors">No colors selected yet</div>
+    </div>
+
+    <div class="form-group">
+      <label>Design Style</label>
+      <select id="f-style">
+        <option value="">Choose a style</option>
+        <option value="Simple solid color">Simple solid color</option>
+        <option value="Striped pattern">Striped pattern</option>
+        <option value="Flower motif">Flower motif</option>
+        <option value="Star / heart motif">Star / heart motif</option>
+        <option value="Bohemian / layered">Bohemian / layered</option>
+        <option value="Beaded accents">Beaded accents</option>
+        <option value="Name / initial charm">Name / initial charm</option>
+        <option value="Friendship bracelet style">Friendship bracelet style</option>
+        <option value="Surprise me!">Surprise me!</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Occasion (optional)</label>
+      <select id="f-occasion">
+        <option value="">Select occasion</option>
+        <option value="Birthday gift">Birthday gift</option>
+        <option value="Friendship gift">Friendship gift</option>
+        <option value="Self treat">Self treat</option>
+        <option value="Wedding / event">Wedding / event</option>
+        <option value="Just because">Just because ♡</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Extra Notes</label>
+      <textarea id="f-notes" rows="3" placeholder="Any specific requests, inspo, or references..." maxlength="300"
+        oninput="updateCount(this)"></textarea>
+      <div class="char-count" id="char-count">0 / 300</div>
+    </div>
+
+    <!-- Message preview -->
+    <div class="preview-label">▶ MESSAGE PREVIEW</div>
+    <div class="msg-preview" id="msg-preview">Fill in the form above to preview your message...</div>
+
+    <!-- DM Button -->
+    <a href="#" class="dm-btn" id="dm-btn" target="_blank">
+      📋 Copy & Open Instagram
+    </a>
+
+    <p style="text-align:center; font-size:0.78rem; color:var(--muted); margin-top:0.8rem;">
+      This will open Instagram where you can paste the message and send me a DM. ♡
+    </p>
+  </div>
+
+  <!-- Sidebar -->
+  <div>
+    <div class="info-card">
+      <h3>what to expect ♡</h3>
+      <div class="info-item"><span>⏰</span> Custom orders take 3–7 days to make</div>
+      <div class="info-item"><span>💬</span> I'll DM you back to confirm details & price</div>
+      <div class="info-item"><span>💸</span> Payment after design is confirmed</div>
+      <div class="info-item"><span>📦</span> Ships within 2 days of completion</div>
+      <div class="info-item"><span>💕</span> Bulk / friendship set discounts available!</div>
+    </div>
+
+    <div class="process-card">
+      <h3>how it works</h3>
+      <div class="step">
+        <div class="step-num">1</div>Fill the form and click Send DM
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>I confirm your design and quote a price
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>You pay and I start crocheting ♡
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>Your bracelet ships to you!
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Instagram handle — replace with yours ──
+  const IG_HANDLE = 'dhumra.paan';
+
+  const selectedColors = new Set();
+
+  document.querySelectorAll('.color-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const name = chip.dataset.name;
+      if (selectedColors.has(name)) {
+        selectedColors.delete(name);
+        chip.classList.remove('selected');
+      } else {
+        selectedColors.add(name);
+        chip.classList.add('selected');
+      }
+      updateColorLabel();
+      updatePreview();
+    });
+  });
+
+  function updateColorLabel() {
+    const el = document.getElementById('selected-colors');
+    el.textContent = selectedColors.size
+      ? [...selectedColors].join(', ')
+      : 'No colors selected yet';
+  }
+
+  function updateCount(el) {
+    document.getElementById('char-count').textContent = `${el.value.length} / 300`;
+    updatePreview();
+  }
+
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function buildMessage() {
+    const name = val('f-name');
+    const size = val('f-size');
+    const qty = val('f-qty');
+    const style = val('f-style');
+    const occ = val('f-occasion');
+    const notes = val('f-notes');
+    const colors = [...selectedColors].join(', ') || 'Not specified';
+
+    let msg = `Hi! I'd like to place a custom bracelet order 🧶\n\n`;
+    if (name) msg += `Name: ${name}\n`;
+    if (size) msg += `Size: ${size}\n`;
+    if (qty) msg += `Quantity: ${qty}\n`;
+    msg += `Colors: ${colors}\n`;
+    if (style) msg += `Style: ${style}\n`;
+    if (occ) msg += `Occasion: ${occ}\n`;
+    if (notes) msg += `\nExtra notes: ${notes}\n`;
+    msg += `\nLooking forward to hearing from you! ♡`;
+    return msg;
+  }
+
+  function updatePreview() {
+    const preview = document.getElementById('msg-preview');
+    const msg = buildMessage();
+    preview.textContent = msg;
+  }
+
+  document.getElementById('dm-btn').addEventListener('click', async (e) => {
+    e.preventDefault();
+    const msg = buildMessage();
+    try {
+      await navigator.clipboard.writeText(msg);
+    } catch {
+      // fallback for browsers that block clipboard
+      const ta = document.createElement('textarea');
+      ta.value = msg;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    alert('Message copied to clipboard! ♡\nNow paste it in my Instagram DM.');
+    window.open(`https://ig.me/m/${IG_HANDLE}`, '_blank');
+  });
+
+  // Live update on all inputs
+  ['f-name', 'f-size', 'f-qty', 'f-style', 'f-occasion', 'f-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updatePreview);
+    if (el) el.addEventListener('change', updatePreview);
+  });
+
+  updatePreview();
+</script>
+{% endblock %}

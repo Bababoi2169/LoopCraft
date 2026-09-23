@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} — LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .order-wrap { max-width: 680px; margin: 0 auto; }
+
+  .status-banner {
+    text-align: center;
+    padding: 2.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+  }
+
+  .status-banner.paid   { background: #0f2e1a; border: 1px solid var(--success); }
+  .status-banner.failed { background: #2e0f0f; border: 1px solid var(--danger); }
+  .status-banner.pending{ background: var(--surface); border: 1px solid var(--border); }
+
+  .status-icon  { font-size: 3rem; margin-bottom: 0.5rem; }
+  .status-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .status-sub   { color: var(--muted); font-size: 0.95rem; }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  @media (max-width: 500px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem; }
+  .info-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem; }
+  .info-value { font-size: 0.95rem; font-weight: 500; }
+
+  .items-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+  .items-title { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); font-weight: 600; font-size: 0.95rem; }
+
+  .order-row { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 1.2rem; border-bottom: 1px solid var(--border); }
+  .order-row:last-child { border-bottom: none; }
+  .order-row img  { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .order-row-name { flex: 1; font-size: 0.9rem; font-weight: 500; }
+  .order-row-qty  { font-size: 0.8rem; color: var(--muted); }
+  .order-row-price{ font-weight: 600; color: var(--accent); }
+
+  .total-row { display: flex; justify-content: space-between; padding: 1rem 1.2rem; background: var(--bg); font-weight: 700; font-size: 1rem; }
+
+  .action-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-wrap">
+
+  <!-- Status Banner -->
+  <div class="status-banner {{ order.status }}">
+    {% if order.status == 'paid' %}
+      <div class="status-icon">✅</div>
+      <div class="status-title">Order Confirmed!</div>
+      <div class="status-sub">Payment received. Your order is on its way.</div>
+    {% elif order.status == 'failed' %}
+      <div class="status-icon">❌</div>
+      <div class="status-title">Payment Failed</div>
+      <div class="status-sub">Something went wrong. Your cart is still saved.</div>
+    {% else %}
+      <div class="status-icon">⏳</div>
+      <div class="status-title">Order Pending</div>
+      <div class="status-sub">Waiting for payment confirmation.</div>
+    {% endif %}
+  </div>
+
+  <!-- Order Info -->
+  <div class="info-grid">
+    <div class="info-card">
+      <div class="info-label">Order ID</div>
+      <div class="info-value">#{{ order.id }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Amount Paid</div>
+      <div class="info-value" style="color:var(--accent)">₹{{ "{:,}".format(order.amount|int) }}</div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Payment ID</div>
+      <div class="info-value" style="font-size:0.8rem; word-break:break-all;">
+        {{ order.razorpay_payment_id or '—' }}
+      </div>
+    </div>
+    <div class="info-card">
+      <div class="info-label">Date</div>
+      <div class="info-value">{{ order.created_at.strftime('%d %b %Y, %I:%M %p') }}</div>
+    </div>
+  </div>
+
+  <!-- Delivery Address -->
+  {% set addr = order.address() %}
+  {% if addr %}
+  <div class="info-card" style="margin-bottom:1rem;">
+    <div class="info-label">Delivery Address</div>
+    <div class="info-value" style="margin-top:0.4rem; color:var(--muted); font-size:0.9rem; line-height:1.6;">
+      {{ addr.get('label', '') }} — {{ addr.get('street', '') }}, {{ addr.get('city', '') }} {{ addr.get('pincode', '') }}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Items -->
+  <div class="items-card">
+    <div class="items-title">Items Ordered</div>
+    {% for item in order.items() %}
+    <div class="order-row">
+      <img src="{{ item.get('image', 'https://via.placeholder.com/48') }}" alt="{{ item.get('name') }}" />
+      <div class="order-row-name">{{ item.get('name') }}</div>
+      <div class="order-row-qty">×{{ item.get('qty') }}</div>
+      <div class="order-row-price">₹{{ "{:,}".format((item.get('price', 0) * item.get('qty', 1))|int) }}</div>
+    </div>
+    {% endfor %}
+    <div class="total-row">
+      <span>Total Paid</span>
+      <span style="color:var(--accent)">₹{{ "{:,}".format(order.amount|int) }}</span>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="action-row">
+    <a href="{{ url_for('shop') }}" class="btn btn-primary">Continue Shopping</a>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">My Account</a>
+  </div>
+
+</div>
+{% endblock %}

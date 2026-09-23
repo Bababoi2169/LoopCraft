@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}" />
+  <title>{% block title %}LoopCraft{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@400;600;700;800&family=Playfair+Display:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #FFF8F0;
+      --surface: #FFFFFF;
+      --pink: #FFB3C6;
+      --pink-dark: #FF85A1;
+      --lavender: #C9B8E8;
+      --lav-dark: #A990D4;
+      --mint: #B8E8D0;
+      --mint-dark: #7DD4AA;
+      --cream: #FFF0DC;
+      --brown: #8B5E52;
+      --text: #3D2B1F;
+      --muted: #9B8070;
+      --border: #E8D5C4;
+      --shadow: 4px 4px 0px #D4B8A8;
+      --radius: 0px;
+      --nav-h: 64px;
+      --pixel: 2px;
+
+      /* Extra tokens used by dashboard/cart/checkout/login/register/order pages */
+      --accent: #e8c547;
+      --accent2: #d4a935;
+      --success: #52c47a;
+      --danger: #e05252;
+      --info: #5290e0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--bg);
+      background-image:
+        radial-gradient(circle, #FFB3C620 1px, transparent 1px),
+        radial-gradient(circle, #C9B8E820 1px, transparent 1px);
+      background-size: 24px 24px, 48px 48px;
+      background-position: 0 0, 12px 12px;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 600;
+      min-height: 100vh;
+    }
+
+    /* ── PIXEL BORDER UTILITY ── */
+    .pixel-box {
+      border: var(--pixel) solid var(--brown);
+      box-shadow: var(--shadow);
+    }
+
+    /* ── NAV ── */
+    nav {
+      height: var(--nav-h);
+      background: var(--pink);
+      border-bottom: var(--pixel) solid var(--brown);
+      box-shadow: 0 4px 0 #D4B8A8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      image-rendering: pixelated;
+    }
+
+    .nav-brand {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.85rem;
+      color: var(--brown);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+      text-shadow: 2px 2px 0 #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .nav-brand .pixel-heart {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      background: var(--brown);
+      position: relative;
+      transform: rotate(45deg);
+      animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    .nav-brand .pixel-heart::before,
+    .nav-brand .pixel-heart::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--brown);
+      border-radius: 50%;
+    }
+
+    .nav-brand .pixel-heart::before {
+      left: -8px;
+      top: 0;
+    }
+
+    .nav-brand .pixel-heart::after {
+      left: 0;
+      top: -8px;
+    }
+
+    @keyframes heartbeat {
+
+      0%,
+      100% {
+        transform: rotate(45deg) scale(1);
+      }
+
+      50% {
+        transform: rotate(45deg) scale(1.15);
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-links a {
+      color: var(--brown);
+      text-decoration: none;
+      padding: 0.4rem 0.85rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      border: var(--pixel) solid transparent;
+      transition: all 0.1s;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links a:hover {
+      background: var(--cream);
+      border-color: var(--brown);
+      box-shadow: 2px 2px 0 var(--brown);
+      transform: translate(-1px, -1px);
+    }
+
+    .nav-links .btn-nav {
+      background: var(--lavender);
+      border: var(--pixel) solid var(--brown);
+      box-shadow: 2px 2px 0 var(--brown);
+    }
+
+    .nav-links .btn-nav:hover {
+      background: var(--lav-dark);
+      transform: translate(-1px, -1px);
+      box-shadow: 3px 3px 0 var(--brown);
+    }
+
+    .cart-badge {
+      background: var(--brown);
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      border-radius: 0;
+      padding: 2px 5px;
+      margin-left: 3px;
+      vertical-align: middle;
+    }
+
+    /* ── FLASH MESSAGES ── */
+    .flash-wrap {
+      position: fixed;
+      top: calc(var(--nav-h) + 12px);
+      right: 1.5rem;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 320px;
+    }
+
+    .flash {
+      padding: 0.75rem 1rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      line-height: 1.8;
+      border: var(--pixel) solid var(--brown);
+      box-shadow: 3px 3px 0 var(--brown);
+      animation: slideIn 0.2s steps(4) forwards;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(110%);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .flash.success {
+      background: var(--mint);
+      color: var(--brown);
+    }
+
+    .flash.error {
+      background: #FFD0D0;
+      color: #8B2020;
+    }
+
+    .flash.info {
+      background: var(--lavender);
+      color: var(--brown);
+    }
+
+    /* ── MAIN ── */
+    main {
+      padding: 2.5rem 2rem;
+      max-width: 1160px;
+      margin: 0 auto;
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      border: var(--pixel) solid var(--brown);
+      box-shadow: 3px 3px 0 var(--brown);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.55rem;
+      font-weight: 400;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.1s;
+      letter-spacing: 0.5px;
+      background: var(--cream);
+      color: var(--brown);
+    }
+
+    .btn:hover,
+    .btn:focus {
+      transform: translate(-2px, -2px);
+      box-shadow: 5px 5px 0 var(--brown);
+    }
+
+    .btn:active {
+      transform: translate(2px, 2px);
+      box-shadow: 1px 1px 0 var(--brown);
+    }
+
+    .btn-primary {
+      background: var(--mint);
+      color: var(--brown);
+    }
+
+    .btn-primary:hover {
+      background: var(--mint-dark);
+    }
+
+    .btn-ghost {
+      background: var(--surface);
+      color: var(--brown);
+    }
+
+    .btn-ghost.btn-sm,
+    .btn.btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.45rem;
+    }
+
+    .btn-pink {
+      background: var(--pink);
+      color: var(--brown);
+    }
+
+    .btn-pink:hover {
+      background: var(--pink-dark);
+    }
+
+    .btn-lav {
+      background: var(--lavender);
+      color: var(--brown);
+    }
+
+    .btn-lav:hover {
+      background: var(--lav-dark);
+    }
+
+    .btn-mint {
+      background: var(--mint);
+      color: var(--brown);
+    }
+
+    .btn-mint:hover {
+      background: var(--mint-dark);
+    }
+
+    .btn-danger {
+      background: #FFD0D0;
+      color: #8B2020;
+    }
+
+    .btn-danger:hover {
+      background: #FFB0B0;
+    }
+
+    /* ── CARD (used by checkout/cart/dashboard style pages) ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    /* ── FORMS ── */
+    .form-group {
+      margin-bottom: 1.1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.5rem;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    input[type=number],
+    select,
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: var(--pixel) solid var(--brown);
+      box-shadow: 2px 2px 0 var(--border);
+      padding: 0.7rem 1rem;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 600;
+      outline: none;
+      transition: box-shadow 0.1s;
+      border-radius: 0;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      box-shadow: 3px 3px 0 var(--pink-dark);
+      border-color: var(--pink-dark);
+    }
+
+    /* ── PAGE TITLE ── */
+    .page-title {
+      font-family: 'Press Start 2P', monospace;
+      font-size: 1.2rem;
+      font-weight: 400;
+      margin-bottom: 2rem;
+      color: var(--brown);
+      text-shadow: 3px 3px 0 var(--pink);
+      line-height: 1.6;
+    }
+
+    /* ── PIXEL DECORATIONS ── */
+    .pixel-star {
+      display: inline-block;
+      font-size: 1rem;
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      text-align: center;
+      color: var(--brown);
+      font-family: 'Press Start 2P', monospace;
+      font-size: 0.45rem;
+      line-height: 2.2;
+      padding: 2rem;
+      border-top: var(--pixel) solid var(--brown);
+      margin-top: 4rem;
+      background: var(--pink);
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+
+<body>
+
+  <nav>
+    <a href="{{ url_for('index') }}" class="nav-brand">
+      <span class="pixel-heart"></span>
+      LoopCraft
+    </a>
+    <div class="nav-links">
+      <a href="{{ url_for('shop') }}">✿ Shop</a>
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('cart') }}">
+        ☆ Cart
+        {% set count = current_user.cart_items|length %}
+        {% if count > 0 %}<span class="cart-badge">{{ count }}</span>{% endif %}
+      </a>
+      <a href="{{ url_for('custom_order') }}">✉ Custom</a>
+      <a href="{{ url_for('dashboard') }}">♡ Account</a>
+      <a href="{{ url_for('logout') }}" class="btn-nav">Logout</a>
+      {% else %}
+      <a href="{{ url_for('login') }}">Login</a>
+      <a href="{{ url_for('register') }}" class="btn-nav">Sign Up</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flash-wrap">
+    {% for category, message in messages %}
+    <div class="flash {{ category }}">{{ message }}</div>
+    {% endfor %}
+  </div>
+  <script>
+    setTimeout(() => {
+      document.querySelectorAll('.flash').forEach(el => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      });
+    }, 3500);
+  </script>
+  {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    ★ handcrafted with love ★ LoopCraft ★ 2025 ★<br />
+    every bracelet is made just for you ♡
+  </footer>
+</body>
+
+</html>

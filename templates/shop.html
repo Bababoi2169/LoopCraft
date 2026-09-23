@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+{% block title %}Shop ♡ LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .shop-hero {
+    text-align: center;
+    padding: 2.5rem 0 2rem;
+  }
+
+  .shop-hero h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(0.9rem, 2.5vw, 1.5rem);
+    color: var(--brown);
+    margin-bottom: 0.6rem;
+    text-shadow: 3px 3px 0 var(--pink), 6px 6px 0 var(--lavender);
+    line-height: 1.8;
+  }
+
+  .shop-hero p {
+    color: var(--muted);
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  /* Search */
+  .search-wrap {
+    max-width: 480px;
+    margin: 1.5rem auto 1.5rem;
+    position: relative;
+  }
+
+  .search-wrap form {
+    display: flex;
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .search-wrap input {
+    flex: 1;
+    border: none;
+    box-shadow: none;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 0;
+  }
+
+  .search-wrap input:focus {
+    box-shadow: none;
+    border-color: transparent;
+  }
+
+  .search-btn {
+    background: var(--pink);
+    border: none;
+    border-left: var(--pixel) solid var(--brown);
+    padding: 0 1rem;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    color: var(--brown);
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+
+  .search-btn:hover {
+    background: var(--pink-dark);
+  }
+
+  /* Filters */
+  .cat-filters {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 2rem;
+  }
+
+  .cat-pill {
+    padding: 0.4rem 0.9rem;
+    border: var(--pixel) solid var(--brown);
+    color: var(--brown);
+    text-decoration: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.45rem;
+    transition: all 0.1s;
+    background: var(--surface);
+    letter-spacing: 0.5px;
+  }
+
+  .cat-pill:hover {
+    background: var(--cream);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--brown);
+  }
+
+  .cat-pill.active {
+    background: var(--pink);
+    box-shadow: 3px 3px 0 var(--brown);
+  }
+
+  /* Products grid */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+  }
+
+  .product-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 var(--brown);
+  }
+
+  .product-img {
+    width: 100%;
+    height: 210px;
+    object-fit: cover;
+    display: block;
+    border-bottom: var(--pixel) solid var(--brown);
+  }
+
+  .product-badge {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    background: var(--pink);
+    border: var(--pixel) solid var(--brown);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.38rem;
+    padding: 0.2rem 0.45rem;
+    color: var(--brown);
+  }
+
+  .out-badge {
+    background: #FFD0D0;
+    color: #8B2020;
+  }
+
+  .product-info {
+    padding: 1rem;
+  }
+
+  .product-category {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.38rem;
+    color: var(--lav-dark);
+    margin-bottom: 0.35rem;
+    letter-spacing: 1px;
+  }
+
+  .product-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.55rem;
+    color: var(--brown);
+    margin-bottom: 0.35rem;
+    line-height: 1.8;
+  }
+
+  .product-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.7rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.65rem;
+    color: var(--brown);
+    margin-bottom: 0.9rem;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 0.6rem;
+    border: var(--pixel) solid var(--brown);
+    box-shadow: 3px 3px 0 var(--brown);
+    background: var(--pink);
+    color: var(--brown);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.48rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .add-btn:hover {
+    background: var(--pink-dark);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--brown);
+  }
+
+  .login-nudge {
+    width: 100%;
+    padding: 0.6rem;
+    border: var(--pixel) solid var(--border);
+    background: var(--cream);
+    color: var(--muted);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.42rem;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+    transition: all 0.1s;
+  }
+
+  .login-nudge:hover {
+    border-color: var(--brown);
+    color: var(--brown);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .page-btn {
+    padding: 0.45rem 0.85rem;
+    border: var(--pixel) solid var(--brown);
+    background: var(--surface);
+    color: var(--brown);
+    text-decoration: none;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.45rem;
+    transition: all 0.1s;
+  }
+
+  .page-btn:hover {
+    background: var(--cream);
+    transform: translate(-1px, -1px);
+    box-shadow: 2px 2px 0 var(--brown);
+  }
+
+  .page-btn.active {
+    background: var(--pink);
+    box-shadow: 3px 3px 0 var(--brown);
+  }
+
+  .page-btn.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  .empty-shop {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .results-info {
+    text-align: center;
+    color: var(--muted);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.42rem;
+    margin-bottom: 1.5rem;
+    line-height: 2;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="shop-hero">
+  <h1>✿ All Bracelets</h1>
+  <p>handcrafted with love, one stitch at a time ♡</p>
+</div>
+
+<!-- Search -->
+<div class="search-wrap">
+  <form method="GET" action="{{ url_for('shop') }}">
+    {% if active_category %}
+    <input type="hidden" name="category" value="{{ active_category }}" />
+    {% endif %}
+    <input type="text" name="q" value="{{ search }}" placeholder="search bracelets..." autocomplete="off" />
+    <button type="submit" class="search-btn">SEARCH</button>
+  </form>
+</div>
+
+<!-- Category filters -->
+{% if categories %}
+<div class="cat-filters">
+  <a href="{{ url_for('shop', q=search) }}" class="cat-pill {% if not active_category %}active{% endif %}">✿ All</a>
+  {% for cat in categories %}
+  <a href="{{ url_for('shop', category=cat, q=search) }}"
+    class="cat-pill {% if active_category == cat %}active{% endif %}">{{ cat }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if search or active_category %}
+<p class="results-info">
+  {% if search %}results for "{{ search }}"{% endif %}
+  {% if active_category %} in {{ active_category }}{% endif %}
+  — {{ pagination.total }} bracelet{{ 's' if pagination.total != 1 else '' }} found
+</p>
+{% endif %}
+
+{% if products %}
+<div class="products-grid">
+  {% for product in products %}
+  <div class="product-card">
+    <img src="{{ product.image or 'https://via.placeholder.com/400x210?text=♡' }}" alt="{{ product.name }}"
+      class="product-img" loading="lazy" />
+
+    {% if not product.in_stock %}
+    <div class="product-badge out-badge">sold out</div>
+    {% elif product.stock <= 3 %}
+    <div class="product-badge">only {{ product.stock }} left!</div>
+    {% else %}
+    <div class="product-badge">in stock ♡</div>
+    {% endif %}
+
+    <div class="product-info">
+      {% if product.category %}<div class="product-category">{{ product.category }}</div>{% endif %}
+      <div class="product-name">{{ product.name }}</div>
+      {% if product.description %}<div class="product-desc">{{ product.description }}</div>{% endif %}
+      <div class="product-price">₹{{ "{:,}".format(product.price|int) }}</div>
+
+      {% if current_user.is_authenticated %}
+      {% if product.in_stock %}
+      <form method="POST" action="{{ url_for('add_to_cart') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="product_id" value="{{ product.id }}" />
+        <button type="submit" class="add-btn">🛒 Add to Cart</button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('custom_order') }}" class="add-btn"
+        style="display:block; text-align:center; text-decoration:none;">✉ Request Custom</a>
+      {% endif %}
+      {% else %}
+      <a href="{{ url_for('login') }}" class="login-nudge">login to add to cart</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if pagination.pages > 1 %}
+<div class="pagination">
+  <a href="{{ url_for('shop', page=pagination.prev_num, category=active_category, q=search) }}"
+    class="page-btn {% if not pagination.has_prev %}disabled{% endif %}">← Prev</a>
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+  {% if p %}
+  <a href="{{ url_for('shop', page=p, category=active_category, q=search) }}"
+    class="page-btn {% if p == pagination.page %}active{% endif %}">{{ p }}</a>
+  {% else %}
+  <span class="page-btn disabled">…</span>
+  {% endif %}
+  {% endfor %}
+  <a href="{{ url_for('shop', page=pagination.next_num, category=active_category, q=search) }}"
+    class="page-btn {% if not pagination.has_next %}disabled{% endif %}">Next →</a>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-shop">
+  <div style="font-size:3rem; margin-bottom:1rem">🧶</div>
+  <div
+    style="font-family:'Press Start 2P',monospace; font-size:0.6rem; color:var(--brown); margin-bottom:0.8rem; line-height:1.8;">
+    no bracelets found</div>
+  <p style="margin-bottom:1.5rem">try a different search or browse all designs!</p>
+  {% if search or active_category %}
+  <a href="{{ url_for('shop') }}" class="btn btn-pink">clear filters</a>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

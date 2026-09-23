@@ -1,0 +1,648 @@
+{% extends "base.html" %}
+{% block title %}Account — LoopCraft{% endblock %}
+
+{% block head %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+  .dashboard-grid {
+    display: block;
+  }
+
+  /* Content */
+  .section {
+    margin-bottom: 2rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+  }
+
+  /* Stats */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+  }
+
+  /* Addresses */
+  .addresses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .address-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    position: relative;
+  }
+
+  .address-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+
+  .address-text {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .address-del {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: color 0.2s;
+  }
+
+  .address-del:hover {
+    color: var(--danger);
+  }
+
+  /* Add address form */
+  .add-address-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+
+  .addr-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 500px) {
+    .addr-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Map */
+  #map {
+    width: 100%;
+    height: 300px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin-bottom: 1rem;
+    z-index: 0;
+  }
+
+  .map-search-wrap {
+    position: relative;
+    margin-bottom: 0.8rem;
+  }
+
+  #map-search {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  #search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .search-result-item {
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .search-result-item:last-child {
+    border-bottom: none;
+  }
+
+  .search-result-item:hover {
+    background: var(--bg);
+    color: var(--accent);
+  }
+
+  .location-info {
+    display: none;
+    background: var(--bg);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 0.85rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .map-btn-row {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  /* Cart mini */
+  .cart-mini {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .cart-mini-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cart-mini-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .cart-mini-img {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .cart-mini-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    flex: 1;
+  }
+
+  .cart-mini-qty {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .cart-mini-price {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 0.9rem;
+  }
+
+  .cart-mini-footer {
+    padding: 0.9rem 1.2rem;
+    background: var(--bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+
+  /* Orders table */
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    font-size: 0.9rem;
+  }
+
+  .orders-table th {
+    text-align: left;
+    padding: 0.8rem 1rem;
+    background: var(--bg);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .orders-table td {
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  .orders-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .orders-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .status-pill {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-pill.paid {
+    background: rgba(82, 196, 122, 0.15);
+    color: var(--success);
+  }
+
+  .status-pill.pending {
+    background: rgba(82, 144, 224, 0.15);
+    color: var(--info);
+  }
+
+  .status-pill.failed {
+    background: rgba(224, 82, 82, 0.15);
+    color: var(--danger);
+  }
+
+  .view-order-btn {
+    font-size: 0.8rem;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .view-order-btn:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 600px) {
+    .orders-table thead {
+      display: none;
+    }
+
+    .orders-table td {
+      display: block;
+      padding: 0.5rem 1rem;
+    }
+
+    .orders-table tr {
+      border-bottom: 1px solid var(--border);
+      display: block;
+      padding: 0.5rem 0;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+
+  <!-- Main Content -->
+  <div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">{{ orders|length }}</div>
+        <div class="stat-label">Total Orders</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ cart_items|length }}</div>
+        <div class="stat-label">Items in Cart</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ addresses|length }}</div>
+        <div class="stat-label">Saved Addresses</div>
+      </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Order History</div>
+      </div>
+
+      {% if orders %}
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Tracking</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr>
+            <td style="font-weight:600;">#{{ order.id }}</td>
+            <td style="color:var(--muted);">{{ order.created_at.strftime('%d %b %Y') }}</td>
+            <td style="color:var(--accent); font-weight:600;">₹{{ "{:,}".format(order.amount|int) }}</td>
+            <td><span class="status-pill {{ order.status }}">{{ order.status }}</span></td>
+            <td style="font-size:0.82rem;">
+              {% if order.tracking_number %}
+              {{ order.tracking_number }}
+              {% else %}
+              <span style="color:var(--muted);">—</span>
+              {% endif %}
+            </td>
+            <td><a href="{{ url_for('order_detail', order_id=order.id) }}" class="view-order-btn">View →</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state"
+        style="background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);">
+        No orders yet. <a href="{{ url_for('shop') }}" style="color:var(--accent);">Start shopping!</a>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Cart Summary -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Cart Summary</div>
+        <a href="{{ url_for('cart') }}" class="btn btn-ghost btn-sm">View Full Cart →</a>
+      </div>
+      <div class="cart-mini">
+        {% if cart_items %}
+        {% for item in cart_items[:4] %}
+        <div class="cart-mini-item">
+          <img src="{{ item.image or 'https://via.placeholder.com/50' }}" alt="{{ item.name }}" class="cart-mini-img" />
+          <div class="cart-mini-name">{{ item.name }}</div>
+          <div class="cart-mini-qty">× {{ item.quantity }}</div>
+          <div class="cart-mini-price">₹{{ "{:,}".format((item.price * item.quantity)|int) }}</div>
+        </div>
+        {% endfor %}
+        {% if cart_items|length > 4 %}
+        <div class="cart-mini-item" style="color:var(--muted); font-size:0.85rem;">
+          + {{ cart_items|length - 4 }} more items
+        </div>
+        {% endif %}
+        <div class="cart-mini-footer">
+          <span>Total</span>
+          <span style="color:var(--accent)">₹{{ "{:,}".format(cart_total|int) }}</span>
+        </div>
+        {% else %}
+        <div class="empty-state">Your cart is empty. <a href="{{ url_for('shop') }}" style="color:var(--accent)">Start
+            shopping!</a></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Saved Addresses -->
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Saved Addresses</div>
+      </div>
+
+      {% if addresses %}
+      <div class="addresses-grid">
+        {% for addr in addresses %}
+        <div class="address-card">
+          <div class="address-label">{{ addr.label }}</div>
+          <div class="address-text">
+            {{ addr.street }}<br />
+            {{ addr.city }} — {{ addr.pincode }}
+          </div>
+          <form method="POST" action="{{ url_for('delete_address', addr_id=addr.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="address-del" title="Delete">✕</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p style="color:var(--muted); font-size:0.9rem; margin-bottom:1rem;">No addresses saved yet.</p>
+      {% endif %}
+
+      <!-- Add Address Form -->
+      <div class="add-address-form">
+        <div style="font-weight:600; margin-bottom:1rem; font-size:0.95rem;">+ Add New Address</div>
+        <form method="POST" action="{{ url_for('add_address') }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <div class="addr-grid">
+            <div class="form-group">
+              <label>Label</label>
+              <select name="label">
+                <option value="Home">🏠 Home</option>
+                <option value="Office">🏢 Office</option>
+                <option value="Other">📍 Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Pincode</label>
+              <input type="text" name="pincode" id="pincode" placeholder="226001" maxlength="10" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Search Location</label>
+            <div class="map-search-wrap">
+              <input type="text" id="map-search" placeholder="Type a place, street or landmark..." autocomplete="off" />
+              <div id="search-results"></div>
+            </div>
+          </div>
+
+          <div class="map-btn-row">
+            <button type="button" id="use-location-btn" class="btn btn-ghost btn-sm">📍 Use my current location</button>
+            <button type="button" id="clear-map-btn" class="btn btn-ghost btn-sm">✕ Clear</button>
+          </div>
+
+          <div id="map"></div>
+
+          <div class="location-info" id="location-info">
+            📍 <span id="location-text"></span>
+          </div>
+
+          <input type="hidden" name="lat" id="lat" />
+          <input type="hidden" name="lng" id="lng" />
+
+          <div class="form-group">
+            <label>Street Address</label>
+            <input type="text" name="street" id="street" placeholder="Flat no., Building, Street" />
+          </div>
+          <div class="form-group">
+            <label>City</label>
+            <input type="text" name="city" id="city" placeholder="City" />
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Address</button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  const map = L.map('map').setView([20.5937, 78.9629], 5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors', maxZoom: 19
+  }).addTo(map);
+
+  let marker = null;
+
+  function placeMarker(lat, lng) {
+    if (marker) { marker.setLatLng([lat, lng]); }
+    else {
+      marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+      marker.on('dragend', function () {
+        const pos = marker.getLatLng();
+        reverseGeocode(pos.lat, pos.lng);
+      });
+    }
+    map.setView([lat, lng], 17);
+    reverseGeocode(lat, lng);
+  }
+
+  map.on('click', function (e) { placeMarker(e.latlng.lat, e.latlng.lng); });
+
+  function reverseGeocode(lat, lng) {
+    fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+      .then(r => r.json())
+      .then(data => {
+        const addr = data.address || {};
+        const street = addr.road || addr.suburb || addr.neighbourhood || '';
+        const city = addr.city || addr.town || addr.village || addr.county || '';
+        const pincode = addr.postcode || '';
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+        document.getElementById('street').value = street;
+        document.getElementById('city').value = city;
+        if (pincode) document.getElementById('pincode').value = pincode;
+        showLocationInfo(data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      })
+      .catch(() => {
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+        showLocationInfo(`${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+      });
+  }
+
+  function showLocationInfo(text) {
+    const box = document.getElementById('location-info');
+    box.style.display = 'block';
+    document.getElementById('location-text').textContent = text;
+  }
+
+  let searchTimeout = null;
+  const searchInput = document.getElementById('map-search');
+  const searchResults = document.getElementById('search-results');
+
+  searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimeout);
+    const q = this.value.trim();
+    if (q.length < 3) { searchResults.style.display = 'none'; return; }
+    searchTimeout = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=in`)
+        .then(r => r.json())
+        .then(results => {
+          searchResults.innerHTML = '';
+          if (!results.length) { searchResults.style.display = 'none'; return; }
+          results.forEach(result => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.textContent = result.display_name;
+            item.addEventListener('click', () => {
+              placeMarker(parseFloat(result.lat), parseFloat(result.lon));
+              searchInput.value = result.display_name;
+              searchResults.style.display = 'none';
+            });
+            searchResults.appendChild(item);
+          });
+          searchResults.style.display = 'block';
+        });
+    }, 400);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('.map-search-wrap')) searchResults.style.display = 'none';
+  });
+
+  document.getElementById('use-location-btn').addEventListener('click', function () {
+    if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+    this.textContent = '⏳ Getting location...';
+    const btn = this;
+    navigator.geolocation.getCurrentPosition(
+      function (pos) { placeMarker(pos.coords.latitude, pos.coords.longitude); btn.textContent = '📍 Use my current location'; },
+      function () { alert('Could not get location. Please allow access.'); btn.textContent = '📍 Use my current location'; }
+    );
+  });
+
+  document.getElementById('clear-map-btn').addEventListener('click', function () {
+    if (marker) { map.removeLayer(marker); marker = null; }
+    ['lat', 'lng', 'street', 'city', 'pincode'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('location-info').style.display = 'none';
+    searchInput.value = '';
+    map.setView([20.5937, 78.9629], 5);
+  });
+</script>
+{% endblock %}

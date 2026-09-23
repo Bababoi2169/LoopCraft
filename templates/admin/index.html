@@ -1,0 +1,140 @@
+{% extends 'admin/master.html' %}
+
+{% block head_css %}
+  {{ super() }}
+  <style>
+    .sn-wrap       { padding: 2rem; }
+    .sn-title      { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.3rem; }
+    .sn-subtitle   { color: #94a3b8; margin-bottom: 2rem; font-size: 0.95rem; }
+
+    /* ── Stat cards ── */
+    .sn-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .sn-stat {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 1.4rem 1rem;
+      text-align: center;
+    }
+
+    .sn-stat-value {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+      /* prevent overflow for large numbers like revenue */
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sn-stat-label {
+      color: #94a3b8;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .sn-stat-value.yellow { color: #e8c547; }
+    .sn-stat-value.green  { color: #52c47a; }
+    .sn-stat-value.blue   { color: #5290e0; }
+    .sn-stat-value.pink   { color: #f472b6; }
+    .sn-stat-value.red    { color: #e05252; }
+    .sn-stat-value.muted  { color: #94a3b8; }
+
+    /* ── Alerts ── */
+    .sn-alert {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      background: rgba(224, 82, 82, 0.1);
+      border: 1px solid rgba(224, 82, 82, 0.4);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: #e05252;
+    }
+
+    .sn-alert a { color: #e8c547; font-weight: 600; margin-left: 0.3rem; }
+
+    /* ── Quick actions ── */
+    .sn-actions-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      margin-bottom: 0.8rem;
+    }
+
+    .sn-actions {
+      display: flex;
+      gap: 0.7rem;
+      flex-wrap: wrap;
+    }
+
+    .sn-actions .btn { border-radius: 8px; font-size: 0.88rem; }
+  </style>
+{% endblock %}
+
+{% block body %}
+<div class="sn-wrap">
+
+  <div class="sn-title">👋 LoopCraft Admin</div>
+  <div class="sn-subtitle">Here's what's happening in your store today.</div>
+
+  <!-- Stats -->
+  <div class="sn-stats">
+    <div class="sn-stat">
+      <div class="sn-stat-value yellow">{{ stats.products }}</div>
+      <div class="sn-stat-label">Products</div>
+    </div>
+    <div class="sn-stat">
+      <div class="sn-stat-value green">{{ stats.users }}</div>
+      <div class="sn-stat-label">Users</div>
+    </div>
+    <div class="sn-stat">
+      <div class="sn-stat-value blue">{{ stats.orders }}</div>
+      <div class="sn-stat-label">Orders</div>
+    </div>
+    <div class="sn-stat">
+      <div class="sn-stat-value pink" style="font-size:1.4rem;">₹{{ "{:,}".format(stats.revenue|int) }}</div>
+      <div class="sn-stat-label">Revenue (Paid)</div>
+    </div>
+    <div class="sn-stat">
+      <div class="sn-stat-value red">{{ stats.cart_items }}</div>
+      <div class="sn-stat-label">Cart Items</div>
+    </div>
+    <div class="sn-stat">
+      <div class="sn-stat-value muted">{{ stats.addresses }}</div>
+      <div class="sn-stat-label">Addresses</div>
+    </div>
+  </div>
+
+  <!-- Low stock warning -->
+  {% if stats.low_stock_count is defined and stats.low_stock_count > 0 %}
+  <div class="sn-alert">
+    ⚠️ <strong>{{ stats.low_stock_count }} product{{ 's' if stats.low_stock_count != 1 else '' }}</strong> {{ 'are' if stats.low_stock_count != 1 else 'is' }} running low on stock.
+    <a href="/admin/admin_products/">Review now →</a>
+  </div>
+  {% endif %}
+
+  <!-- Quick actions -->
+  <div class="sn-actions-title">Quick Actions</div>
+  <div class="sn-actions">
+    <a href="/admin/admin_products/new/" class="btn btn-primary">＋ Add Product</a>
+    <a href="/admin/admin_products/"     class="btn btn-default">All Products</a>
+    <a href="/admin/admin_orders/"       class="btn btn-default">All Orders</a>
+    <a href="/admin/admin_users/"        class="btn btn-default">All Users</a>
+    <a href="/shop" target="_blank"      class="btn btn-default">Open Shop ↗</a>
+  </div>
+
+</div>
+{% endblock %}

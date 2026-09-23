@@ -1,0 +1,413 @@
+{% extends "base.html" %}
+{% block title %}LoopCraft ♡ Handmade Crochet Bracelets{% endblock %}
+
+{% block head %}
+<style>
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 4rem 1rem 3rem;
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    animation: blink 1.2s step-end infinite;
+  }
+
+  @keyframes blink {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0;
+    }
+  }
+
+  .hero h1 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(1.1rem, 3vw, 2rem);
+    color: var(--brown);
+    line-height: 1.8;
+    margin-bottom: 1rem;
+    text-shadow: 4px 4px 0 var(--pink), 8px 8px 0 var(--lavender);
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    font-weight: 700;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 3rem;
+  }
+
+  /* Floating pixel sprites */
+  .sprites {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .sprite {
+    position: absolute;
+    font-size: 1.5rem;
+    animation: float 4s ease-in-out infinite;
+    opacity: 0.4;
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+
+    50% {
+      transform: translateY(-12px) rotate(10deg);
+    }
+  }
+
+  /* ── FEATURES STRIP ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 3.5rem;
+  }
+
+  .feature-card {
+    background: var(--surface);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    padding: 1.3rem 1rem;
+    text-align: center;
+    transition: transform 0.1s;
+  }
+
+  .feature-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0 var(--brown);
+  }
+
+  .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    color: var(--brown);
+    margin-bottom: 0.5rem;
+    line-height: 1.8;
+  }
+
+  .feature-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  /* ── SECTION HEADING ── */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .section-heading h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: var(--brown);
+    text-shadow: 2px 2px 0 var(--lavender);
+    line-height: 1.8;
+  }
+
+  /* ── PRODUCT GRID ── */
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .product-card {
+    background: var(--surface);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: transform 0.1s, box-shadow 0.1s;
+    position: relative;
+  }
+
+  .product-card:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 7px 7px 0 var(--brown);
+  }
+
+  .product-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    border-bottom: var(--pixel) solid var(--brown);
+    image-rendering: auto;
+  }
+
+  .product-badge {
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
+    background: var(--pink);
+    border: var(--pixel) solid var(--brown);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    color: var(--brown);
+  }
+
+  .out-badge {
+    background: #FFD0D0;
+    color: #8B2020;
+  }
+
+  .product-info {
+    padding: 1rem;
+  }
+
+  .product-category {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.4rem;
+    color: var(--lav-dark);
+    margin-bottom: 0.4rem;
+    letter-spacing: 1px;
+  }
+
+  .product-name {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.6rem;
+    color: var(--brown);
+    margin-bottom: 0.4rem;
+    line-height: 1.8;
+  }
+
+  .product-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .product-price {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.7rem;
+    color: var(--brown);
+    margin-bottom: 1rem;
+  }
+
+  .add-btn {
+    width: 100%;
+    padding: 0.6rem;
+    border: var(--pixel) solid var(--brown);
+    box-shadow: 3px 3px 0 var(--brown);
+    background: var(--pink);
+    color: var(--brown);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.5rem;
+    cursor: pointer;
+    transition: all 0.1s;
+    letter-spacing: 0.5px;
+  }
+
+  .add-btn:hover {
+    background: var(--pink-dark);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0 var(--brown);
+  }
+
+  .login-nudge {
+    width: 100%;
+    padding: 0.6rem;
+    border: var(--pixel) solid var(--border);
+    background: var(--cream);
+    color: var(--muted);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.45rem;
+    text-align: center;
+    display: block;
+    text-decoration: none;
+    transition: all 0.1s;
+  }
+
+  .login-nudge:hover {
+    border-color: var(--brown);
+    color: var(--brown);
+  }
+
+  /* ── CUSTOM ORDER BANNER ── */
+  .custom-banner {
+    background: var(--lavender);
+    border: var(--pixel) solid var(--brown);
+    box-shadow: var(--shadow);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .custom-banner::before {
+    content: '✿ ✿ ✿ ✿ ✿ ✿ ✿ ✿ ✿ ✿';
+    position: absolute;
+    top: 0.5rem;
+    left: 0;
+    right: 0;
+    font-size: 0.7rem;
+    color: var(--lav-dark);
+    letter-spacing: 8px;
+    text-align: center;
+  }
+
+  .custom-banner h2 {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 0.85rem;
+    color: var(--brown);
+    margin-bottom: 0.8rem;
+    line-height: 1.8;
+    text-shadow: 2px 2px 0 #fff;
+  }
+
+  .custom-banner p {
+    color: var(--brown);
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero -->
+<section class="hero">
+  <div class="sprites">
+    <span class="sprite" style="top:10%; left:5%; animation-delay:0s;">🌸</span>
+    <span class="sprite" style="top:20%; right:8%; animation-delay:0.5s;">⭐</span>
+    <span class="sprite" style="top:60%; left:3%; animation-delay:1s;">🌷</span>
+    <span class="sprite" style="top:70%; right:5%; animation-delay:1.5s;">✨</span>
+    <span class="sprite" style="top:40%; left:90%; animation-delay:2s;">🎀</span>
+  </div>
+  <div class="hero-eyebrow">▶ new designs every week ◀</div>
+  <h1>Handmade Crochet<br />Bracelets ♡</h1>
+  <p class="hero-sub">Each one stitched with love, made just for you.</p>
+  <div class="hero-btns">
+    <a href="{{ url_for('shop') }}" class="btn btn-pink">✿ Browse Bracelets</a>
+    <a href="{{ url_for('custom_order') }}" class="btn btn-lav">✉ Custom Order</a>
+  </div>
+</section>
+
+<!-- Features -->
+<div class="features">
+  <div class="feature-card">
+    <span class="feature-icon">🧶</span>
+    <div class="feature-title">Handmade</div>
+    <div class="feature-desc">Every bracelet crocheted by hand with care and love</div>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">🎨</span>
+    <div class="feature-title">Customizable</div>
+    <div class="feature-desc">Pick your colors, patterns, and size</div>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">📦</span>
+    <div class="feature-title">Gift Ready</div>
+    <div class="feature-desc">Comes in a cute little box, perfect for gifting</div>
+  </div>
+  <div class="feature-card">
+    <span class="feature-icon">💌</span>
+    <div class="feature-title">Made to Order</div>
+    <div class="feature-desc">DM for custom designs — anything is possible!</div>
+  </div>
+</div>
+
+<!-- Featured Products -->
+<div class="section-heading">
+  <h2>✿ Featured Designs</h2>
+  <a href="{{ url_for('shop') }}" class="btn btn-mint">See All →</a>
+</div>
+
+{% if featured_products %}
+<div class="products-grid">
+  {% for product in featured_products %}
+  <div class="product-card">
+    <img src="{{ product.image or 'https://via.placeholder.com/400x200?text=♡' }}" alt="{{ product.name }}"
+      class="product-img" loading="lazy" />
+
+    {% if not product.in_stock %}
+    <div class="product-badge out-badge">sold out</div>
+    {% elif product.stock <= 3 %}
+    <div class="product-badge">only {{ product.stock }} left!</div>
+    {% else %}
+    <div class="product-badge">in stock ♡</div>
+    {% endif %}
+
+    <div class="product-info">
+      {% if product.category %}<div class="product-category">{{ product.category }}</div>{% endif %}
+      <div class="product-name">{{ product.name }}</div>
+      {% if product.description %}<div class="product-desc">{{ product.description }}</div>{% endif %}
+      <div class="product-price">₹{{ "{:,}".format(product.price|int) }}</div>
+
+      {% if current_user.is_authenticated %}
+      {% if product.in_stock %}
+      <form method="POST" action="{{ url_for('add_to_cart') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="product_id" value="{{ product.id }}" />
+        <button type="submit" class="add-btn">🛒 Add to Cart</button>
+      </form>
+      {% else %}
+      <a href="{{ url_for('custom_order') }}" class="add-btn"
+        style="display:block; text-align:center; text-decoration:none;">✉ Request Custom</a>
+      {% endif %}
+      {% else %}
+      <a href="{{ url_for('login') }}" class="login-nudge">login to add to cart</a>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Custom Order Banner -->
+<div class="custom-banner">
+  <h2>want something<br />unique? ✿</h2>
+  <p>Send me your design ideas and I'll make it just for you!</p>
+  <a href="{{ url_for('custom_order') }}" class="btn btn-lav">✉ Request Custom Order</a>
+</div>
+
+{% endblock %}

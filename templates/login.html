@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}Login — LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - var(--nav-h) - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-box {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .auth-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 0.4rem;
+  }
+
+  .auth-header p { color: var(--muted); font-size: 0.95rem; }
+
+  .auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+  }
+
+  .remember-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .remember-row input { width: auto; }
+  .remember-row label { margin: 0; color: var(--muted); font-size: 0.875rem; cursor: pointer; }
+
+  .auth-submit {
+    width: 100%;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #0d0d0f;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .auth-submit:hover { background: var(--accent2); }
+
+  .auth-footer {
+    text-align: center;
+    margin-top: 1.4rem;
+    color: var(--muted);
+    font-size: 0.875rem;
+  }
+
+  .auth-footer a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .auth-footer a:hover { text-decoration: underline; }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin: 1.5rem 0;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="auth-box">
+    <div class="auth-header">
+      <h1>Welcome back</h1>
+      <p>Log in to your LoopCraft account</p>
+    </div>
+
+    <div class="auth-card">
+      <form method="POST" action="{{ url_for('login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="form-group">
+          <label for="email">Email address</label>
+          <input type="email" id="email" name="email" placeholder="you@example.com" required autocomplete="email" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <div class="remember-row">
+          <input type="checkbox" id="remember" name="remember" />
+          <label for="remember">Keep me logged in</label>
+        </div>
+
+        <button type="submit" class="auth-submit">Log In →</button>
+      </form>
+    </div>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="{{ url_for('register') }}">Sign up free</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

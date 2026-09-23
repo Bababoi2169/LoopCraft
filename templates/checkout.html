@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+{% block title %}Checkout — LoopCraft{% endblock %}
+
+{% block head %}
+<style>
+  .checkout-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .checkout-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+
+  /* Address selector */
+  .address-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .address-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .address-option:has(input:checked) {
+    border-color: var(--accent);
+  }
+
+  .address-option input[type=radio] {
+    margin-top: 3px;
+    accent-color: var(--accent);
+  }
+
+  .addr-label-tag {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.2rem;
+  }
+
+  .addr-detail {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .no-address {
+    background: var(--bg);
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 1.2rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Order summary */
+  .summary-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: sticky;
+    top: calc(var(--nav-h) + 1rem);
+  }
+
+  .order-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .order-item:last-of-type {
+    border-bottom: none;
+  }
+
+  .order-item img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .order-item-name {
+    flex: 1;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  .order-item-qty {
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  .order-item-price {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 0.7rem;
+  }
+
+  .summary-row.total {
+    color: var(--text);
+    font-size: 1.1rem;
+    font-weight: 700;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.4rem;
+  }
+
+  .pay-btn {
+    width: 100%;
+    padding: 0.9rem;
+    background: var(--accent);
+    color: #0d0d0f;
+    border: none;
+    border-radius: 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 1.2rem;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .pay-btn:hover {
+    background: var(--accent2);
+  }
+
+  .pay-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .secure-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.7rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="page-title">Checkout</h1>
+
+<div class="checkout-layout">
+
+  <!-- Left: Address selection -->
+  <div>
+    <div class="card">
+      <div class="section-title">📍 Delivery Address</div>
+
+      {% if addresses %}
+      <div class="address-options" id="address-options">
+        {% for addr in addresses %}
+        <label class="address-option">
+          <input type="radio" name="address_id" value="{{ addr.id }}" {% if loop.first %}checked{% endif %} />
+          <div>
+            <div class="addr-label-tag">{{ addr.label }}</div>
+            <div class="addr-detail">{{ addr.street }}<br />{{ addr.city }} — {{ addr.pincode }}</div>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="no-address">
+        You have no saved addresses.<br />
+        <a href="{{ url_for('dashboard') }}" style="color:var(--accent);">Add one in your account →</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right: Order summary + Pay button -->
+  <div class="summary-card">
+    <div class="section-title">🧾 Order Summary</div>
+
+    {% for item in items %}
+    <div class="order-item">
+      <img src="{{ item.image or 'https://via.placeholder.com/44' }}" alt="{{ item.name }}" />
+      <div class="order-item-name">{{ item.name }}</div>
+      <div class="order-item-qty">×{{ item.quantity }}</div>
+      <div class="order-item-price">₹{{ "{:,}".format((item.price * item.quantity)|int) }}</div>
+    </div>
+    {% endfor %}
+
+    <div class="summary-row"><span>Subtotal</span><span>₹{{ "{:,}".format(subtotal|int) }}</span></div>
+    <div class="summary-row"><span>Shipping</span><span>Free</span></div>
+    <div class="summary-row total">
+      <span>Total</span>
+      <span>₹{{ "{:,}".format(total|int) }}</span>
+    </div>
+
+    {% if addresses %}
+    <button class="pay-btn" id="pay-btn" onclick="startPayment()">
+      🔒 Pay ₹{{ "{:,}".format(total|int) }}
+    </button>
+    {% else %}
+    <button class="pay-btn" disabled>Add an address to continue</button>
+    {% endif %}
+
+    <div class="secure-note">🔐 Secured by Razorpay · UPI, Cards, NetBanking accepted</div>
+  </div>
+</div>
+
+<!-- Hidden forms to POST back to Flask after payment -->
+<form id="success-form" method="POST" action="{{ url_for('payment_success') }}" style="display:none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+  <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id" />
+  <input type="hidden" name="razorpay_order_id" id="rzp_order_id" />
+  <input type="hidden" name="razorpay_signature" id="rzp_signature" />
+</form>
+
+<form id="failed-form" method="POST" action="{{ url_for('payment_failed') }}" style="display:none;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+  <input type="hidden" name="razorpay_order_id" id="rzp_failed_order_id" />
+</form>
+
+<!-- Razorpay checkout.js -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  async function startPayment() {
+    const btn = document.getElementById('pay-btn');
+
+    // Get selected address
+    const addressInput = document.querySelector('input[name="address_id"]:checked');
+    if (!addressInput) {
+      alert('Please select a delivery address.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Creating order...';
+
+    // Ask Flask to create a Razorpay order
+    const formData = new FormData();
+    formData.append('address_id', addressInput.value);
+    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
+
+    const res = await fetch('/payment/create', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      btn.disabled = false;
+      btn.textContent = '🔒 Pay ₹{{ "{:,}".format(total|int) }}';
+      return;
+    }
+
+    // Open Razorpay checkout popup
+    const options = {
+      key: '{{ razorpay_key }}',
+      amount: data.amount,
+      currency: data.currency,
+      name: 'LoopCraft',
+      description: 'Order Payment',
+      order_id: data.razorpay_order_id,
+      prefill: {
+        name: data.name,
+        email: data.email,
+      },
+      theme: { color: '#e8c547' },
+
+      handler: function (response) {
+        // Payment successful — submit to Flask for verification
+        document.getElementById('rzp_payment_id').value = response.razorpay_payment_id;
+        document.getElementById('rzp_order_id').value = response.razorpay_order_id;
+        document.getElementById('rzp_signature').value = response.razorpay_signature;
+        document.getElementById('success-form').submit();
+      },
+
+      modal: {
+        ondismiss: function () {
+          // User closed the popup — mark as failed
+          document.getElementById('rzp_failed_order_id').value = data.razorpay_order_id;
+          document.getElementById('failed-form').submit();
+        }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+  }
+</script>
+{% endblock %}
