@@ -321,35 +321,34 @@
 
     {% if not product.in_stock %}
     <div class="product-badge out-badge">sold out</div>
-    {% elif product.stock <= 3 %}
-    <div class="product-badge">only {{ product.stock }} left!</div>
-    {% else %}
-    <div class="product-badge">in stock ♡</div>
-    {% endif %}
-
-    <div class="product-info">
-      {% if product.category %}<div class="product-category">{{ product.category }}</div>{% endif %}
-      <div class="product-name">{{ product.name }}</div>
-      {% if product.description %}<div class="product-desc">{{ product.description }}</div>{% endif %}
-      <div class="product-price">₹{{ "{:,}".format(product.price|int) }}</div>
-
-      {% if current_user.is_authenticated %}
-      {% if product.in_stock %}
-      <form method="POST" action="{{ url_for('add_to_cart') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <input type="hidden" name="product_id" value="{{ product.id }}" />
-        <button type="submit" class="add-btn">🛒 Add to Cart</button>
-      </form>
-      {% else %}
-      <a href="{{ url_for('custom_order') }}" class="add-btn"
-        style="display:block; text-align:center; text-decoration:none;">✉ Request Custom</a>
-      {% endif %}
-      {% else %}
-      <a href="{{ url_for('login') }}" class="login-nudge">login to add to cart</a>
-      {% endif %}
-    </div>
+    {% elif product.stock <= 3 %} <div class="product-badge">only {{ product.stock }} left!
   </div>
-  {% endfor %}
+  {% else %}
+  <div class="product-badge">in stock ♡</div>
+  {% endif %}
+
+  <div class="product-info">
+    {% if product.category %}<div class="product-category">{{ product.category }}</div>{% endif %}
+    <div class="product-name">{{ product.name }}</div>
+    {% if product.description %}<div class="product-desc">{{ product.description }}</div>{% endif %}
+    <div class="product-price">₹{{ "{:,}".format(product.price|int) }}</div>
+
+    {% if current_user.is_authenticated %}
+    {% if product.in_stock %}
+    <form method="POST" action="{{ url_for('add_to_cart') }}">
+      <input type="hidden" name="product_id" value="{{ product.id }}" />
+      <button type="submit" class="add-btn">🛒 Add to Cart</button>
+    </form>
+    {% else %}
+    <a href="{{ url_for('custom_order') }}" class="add-btn"
+      style="display:block; text-align:center; text-decoration:none;">✉ Request Custom</a>
+    {% endif %}
+    {% else %}
+    <a href="{{ url_for('login') }}" class="login-nudge">login to add to cart</a>
+    {% endif %}
+  </div>
+</div>
+{% endfor %}
 </div>
 
 {% if pagination.pages > 1 %}

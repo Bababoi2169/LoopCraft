@@ -5,9 +5,9 @@ from flask import Flask, render_template, redirect, url_for, request, flash, jso
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
+from flask_wtf.csrf import CSRFProtect
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from flask_wtf.csrf import CSRFProtect
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -21,17 +21,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY']                     = os.environ.get('SECRET_KEY', 'dev-fallback-change-in-production')
 app.config['SQLALCHEMY_DATABASE_URI']        = 'sqlite:///ecommerce.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-# ── CSRF protection on all POST/PUT/DELETE routes ──
 csrf = CSRFProtect(app)
 
 # ── Razorpay keys — set these in a .env file, never commit them ──
 RAZORPAY_KEY_ID     = os.environ.get('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
-
-if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
-    print('⚠️  WARNING: RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET not set. '
-          'Payments will fail until these are set in your .env file.')
 
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
@@ -72,7 +66,7 @@ class Product(db.Model):
     price       = db.Column(db.Float, nullable=False)
     image       = db.Column(db.String(300))
     category    = db.Column(db.String(100))
-    stock       = db.Column(db.Integer, default=10)
+    stock       = db.Column(db.Integer, default=10)   
     in_stock    = db.Column(db.Boolean, default=True)
 
     def __repr__(self): return f'<Product {self.name}>'
@@ -180,7 +174,7 @@ class OrderAdmin(SecureModelView):
     column_list          = ['id', 'user_id', 'amount', 'status', 'razorpay_payment_id', 'created_at']
     column_filters       = ['status']
     column_sortable_list = ['amount', 'created_at', 'status']
-    column_editable_list = ['status', 'tracking_number']
+    column_editable_list = ['status', 'tracking_number'] 
     can_create = False
     can_edit   = True
     can_export = True
@@ -202,7 +196,7 @@ class AddressAdmin(SecureModelView):
     page_size      = 25
 
 
-admin = Admin(app, name='LoopCraft Admin', index_view=SecureAdminIndex())
+admin = Admin(app, name='ShopNest Admin', index_view=SecureAdminIndex())
 admin.add_view(ProductAdmin(Product,   db.session, name='Products',   endpoint='admin_products'))
 admin.add_view(OrderAdmin(Order,       db.session, name='Orders',     endpoint='admin_orders'))
 admin.add_view(UserAdmin(User,         db.session, name='Users',      endpoint='admin_users'))
@@ -235,8 +229,6 @@ def register():
 
         if not username or not email or not password:
             flash('All fields are required.', 'error')
-        elif len(password) < 6:
-            flash('Password must be at least 6 characters.', 'error')
         elif password != confirm:
             flash('Passwords do not match.', 'error')
         elif User.query.filter_by(email=email).first():
@@ -268,11 +260,11 @@ def login():
             flash(f'Welcome back, {user.username}!', 'success')
 
             # ── Safe redirect: only allow relative paths on this host ──
-            next_page = request.args.get('next', '')
-            parsed    = urlparse(next_page)
-            if next_page and not parsed.netloc and not parsed.scheme:
-                return redirect(next_page)
-            return redirect(url_for('dashboard'))
+        next_page = request.args.get('next', '')
+        parsed    = urlparse(next_page.replace('\\', ''))
+        if next_page.startswith('/') and not parsed.netloc and not parsed.scheme:
+            return redirect(next_page)
+        return redirect(url_for('dashboard'))
 
         flash('Invalid email or password.', 'error')
 
@@ -344,24 +336,13 @@ def cart():
 @app.route('/cart/add', methods=['POST'])
 @login_required
 def add_to_cart():
-    try:
-        product_id = int(request.form['product_id'])
-    except (KeyError, ValueError):
-        flash('Invalid product.', 'error')
-        return redirect(url_for('shop'))
-
+    product_id = int(request.form['product_id'])
     product = db.session.get(Product, product_id)
     if not product or not product.in_stock:
         flash('Product not available.', 'error')
         return redirect(url_for('shop'))
 
     existing = CartItem.query.filter_by(user_id=current_user.id, product_id=product_id).first()
-    current_qty_in_cart = existing.quantity if existing else 0
-
-    if current_qty_in_cart + 1 > product.stock:
-        flash(f'Only {product.stock} of "{product.name}" left in stock.', 'error')
-        return redirect(url_for('shop'))
-
     if existing:
         existing.quantity += 1
     else:
@@ -386,19 +367,10 @@ def remove_from_cart(item_id):
 @login_required
 def update_cart(item_id):
     item = CartItem.query.filter_by(id=item_id, user_id=current_user.id).first_or_404()
-    try:
-        qty = int(request.form.get('quantity', 1))
-    except ValueError:
-        flash('Invalid quantity.', 'error')
-        return redirect(url_for('cart'))
-
+    qty  = int(request.form.get('quantity', 1))
     if qty < 1:
         db.session.delete(item)
     else:
-        product = db.session.get(Product, item.product_id)
-        if product and qty > product.stock:
-            flash(f'Only {product.stock} of "{item.name}" available. Quantity capped.', 'error')
-            qty = product.stock
         item.quantity = qty
     db.session.commit()
     return redirect(url_for('cart'))
@@ -445,7 +417,7 @@ def checkout():
 
     addresses = Address.query.filter_by(user_id=current_user.id).all()
     subtotal  = sum(i.price * i.quantity for i in items)
-    tax       = 0
+    tax       = 0 
     total     = round(subtotal + tax, 2)
 
     return render_template('checkout.html',
@@ -464,27 +436,12 @@ def create_payment():
     if not items:
         return jsonify({'error': 'Cart is empty'}), 400
 
-    address_id = request.form.get('address_id')
-    address    = Address.query.filter_by(id=address_id, user_id=current_user.id).first()
-    if not address:
-        return jsonify({'error': 'Please select a valid delivery address.'}), 400
-
-    # Re-validate stock and re-price against live product data — never trust
-    # the stale CartItem.price, since the admin may have changed it since add-to-cart.
-    subtotal = 0
-    items_data = []
-    for i in items:
-        product = db.session.get(Product, i.product_id)
-        if not product or not product.in_stock:
-            return jsonify({'error': f'"{i.name}" is no longer available.'}), 400
-        if i.quantity > product.stock:
-            return jsonify({'error': f'Only {product.stock} of "{product.name}" left in stock.'}), 400
-        subtotal += product.price * i.quantity
-        items_data.append({'name': product.name, 'price': product.price, 'qty': i.quantity,
-                            'image': product.image, 'product_id': product.id})
-
+    subtotal     = sum(i.price * i.quantity for i in items)
     total_inr    = round(subtotal, 2)
     amount_paise = int(total_inr * 100)
+
+    address_id = request.form.get('address_id')
+    address    = Address.query.filter_by(id=address_id, user_id=current_user.id).first()
 
     rz_order = razorpay_client.order.create({
         'amount':          amount_paise,
@@ -492,7 +449,8 @@ def create_payment():
         'payment_capture': 1
     })
 
-    addr_data = {'street': address.street, 'city': address.city, 'pincode': address.pincode, 'label': address.label}
+    items_data = [{'name': i.name, 'price': i.price, 'qty': i.quantity, 'image': i.image} for i in items]
+    addr_data  = {'street': address.street, 'city': address.city, 'pincode': address.pincode, 'label': address.label} if address else {}
 
     order = Order(
         user_id=current_user.id,
@@ -521,33 +479,26 @@ def payment_success():
     order_id   = request.form.get('razorpay_order_id')
     signature  = request.form.get('razorpay_signature')
 
-    order = Order.query.filter_by(razorpay_order_id=order_id, user_id=current_user.id).first_or_404()
-
     try:
         razorpay_client.utility.verify_payment_signature({
             'razorpay_order_id':   order_id,
             'razorpay_payment_id': payment_id,
             'razorpay_signature':  signature,
         })
-
-        # Decrement stock now that payment is confirmed.
-        for item in order.items():
-            product = db.session.get(Product, item.get('product_id')) if item.get('product_id') else None
-            if product:
-                product.stock = max(0, product.stock - item.get('qty', 0))
-                if product.stock == 0:
-                    product.in_stock = False
-
+        order = Order.query.filter_by(razorpay_order_id=order_id).first_or_404()
         order.status              = 'paid'
         order.razorpay_payment_id = payment_id
         CartItem.query.filter_by(user_id=current_user.id).delete()
         db.session.commit()
         flash('Payment successful! Your order has been placed. 🎉', 'success')
-        return redirect(url_for('order_detail', order_id=order.id))
+        if order.status == 'paid':
+            return redirect(url_for('order_detail', order_id=order.id))
 
     except razorpay.errors.SignatureVerificationError:
-        order.status = 'failed'
-        db.session.commit()
+        order = Order.query.filter_by(razorpay_order_id=order_id).first()
+        if order.status == 'pending':
+            order.status = 'failed'
+            db.session.commit()
         flash('Payment verification failed. Please contact support.', 'error')
         return redirect(url_for('cart'))
 
@@ -557,9 +508,8 @@ def payment_success():
 def payment_failed():
     order_id = request.form.get('razorpay_order_id')
     if order_id:
-        # Ownership check: only the order's own user may mark it failed.
-        order = Order.query.filter_by(razorpay_order_id=order_id, user_id=current_user.id).first()
-        if order:
+        order = Order.query.filter_by(razorpay_order_id=order_id).first()
+        if order and order.status == 'pending':
             order.status = 'failed'
             db.session.commit()
     flash('Payment was cancelled or failed. Your cart is still saved.', 'error')
@@ -606,5 +556,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         seed_products()
-    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
-    app.run(debug=debug_mode)
+    app.run(debug=True)

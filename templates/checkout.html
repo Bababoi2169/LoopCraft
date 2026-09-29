@@ -244,14 +244,12 @@
 
 <!-- Hidden forms to POST back to Flask after payment -->
 <form id="success-form" method="POST" action="{{ url_for('payment_success') }}" style="display:none;">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
   <input type="hidden" name="razorpay_payment_id" id="rzp_payment_id" />
   <input type="hidden" name="razorpay_order_id" id="rzp_order_id" />
   <input type="hidden" name="razorpay_signature" id="rzp_signature" />
 </form>
 
 <form id="failed-form" method="POST" action="{{ url_for('payment_failed') }}" style="display:none;">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
   <input type="hidden" name="razorpay_order_id" id="rzp_failed_order_id" />
 </form>
 
@@ -274,7 +272,6 @@
     // Ask Flask to create a Razorpay order
     const formData = new FormData();
     formData.append('address_id', addressInput.value);
-    formData.append('csrf_token', document.querySelector('meta[name="csrf-token"]').content);
 
     const res = await fetch('/payment/create', { method: 'POST', body: formData });
     const data = await res.json();

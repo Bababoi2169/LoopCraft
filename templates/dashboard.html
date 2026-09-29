@@ -8,6 +8,77 @@
 <style>
   .dashboard-grid {
     display: block;
+    grid-template-columns: 180px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .dashboard-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    position: sticky;
+    top: calc(var(--nav-h) + 1rem);
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0d0d0f;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.8rem;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .user-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sidebar-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+    transition: all 0.18s;
+  }
+
+  .sidebar-nav a:hover,
+  .sidebar-nav a.active {
+    background: var(--bg);
+    color: var(--text);
   }
 
   /* Content */
@@ -358,6 +429,19 @@
 {% block content %}
 <div class="dashboard-grid">
 
+  <!-- Sidebar -->
+  <!-- <div class="sidebar">
+    <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+    <div class="user-name">{{ current_user.username }}</div>
+    <div class="user-email">{{ current_user.email }}</div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('dashboard') }}" class="active">🏠 Overview</a>
+      <a href="{{ url_for('cart') }}">🛒 Cart</a>
+      <a href="{{ url_for('shop') }}">🛍️ Shop</a>
+      <a href="{{ url_for('logout') }}" style="color:var(--danger);">⬅️ Logout</a>
+    </nav>
+  </div> -->
+
   <!-- Main Content -->
   <div>
 
@@ -402,7 +486,7 @@
             <td style="color:var(--muted);">{{ order.created_at.strftime('%d %b %Y') }}</td>
             <td style="color:var(--accent); font-weight:600;">₹{{ "{:,}".format(order.amount|int) }}</td>
             <td><span class="status-pill {{ order.status }}">{{ order.status }}</span></td>
-            <td style="font-size:0.82rem;">
+            <td style="font-size:0.82rem;"> <!-- ← ADD THIS -->
               {% if order.tracking_number %}
               {{ order.tracking_number }}
               {% else %}
@@ -470,7 +554,6 @@
             {{ addr.city }} — {{ addr.pincode }}
           </div>
           <form method="POST" action="{{ url_for('delete_address', addr_id=addr.id) }}" style="display:inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="address-del" title="Delete">✕</button>
           </form>
         </div>
@@ -484,7 +567,6 @@
       <div class="add-address-form">
         <div style="font-weight:600; margin-bottom:1rem; font-size:0.95rem;">+ Add New Address</div>
         <form method="POST" action="{{ url_for('add_address') }}">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
           <div class="addr-grid">
             <div class="form-group">

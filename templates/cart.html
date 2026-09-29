@@ -195,12 +195,10 @@
         <div class="cart-item-price">₹{{ "{:,}".format(item.price|int) }} each</div>
         <div class="cart-item-controls">
           <form class="qty-form" method="POST" action="{{ url_for('update_cart', item_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="qty-input" />
             <button type="submit" class="qty-btn">↻</button>
           </form>
           <form method="POST" action="{{ url_for('remove_from_cart', item_id=item.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="rm-btn">✕ Remove</button>
           </form>
         </div>
@@ -219,6 +217,7 @@
       <span>Total</span>
       <span>₹{{ "{:,}".format(total|int) }}</span>
     </div>
+    <!-- FIXED: was a <button> with no action, now a proper link to checkout -->
     <a href="{{ url_for('checkout') }}" class="checkout-btn">Proceed to Checkout →</a>
     <a href="{{ url_for('shop') }}"
       style="display:block; text-align:center; margin-top:0.8rem; color:var(--muted); font-size:0.85rem; text-decoration:none;">←

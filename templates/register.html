@@ -85,7 +85,6 @@
 
     <div class="auth-card">
       <form method="POST" action="{{ url_for('register') }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="form-group">
           <label for="username">Full name</label>
           <input type="text" id="username" name="username" placeholder="Your name" required />
