@@ -8,5 +8,5 @@ razorpay==1.4.2
 python-dotenv==1.0.1
 setuptools<81
 gunicorn==22.0.0
-pycopg2-binary
+psycopg2-binary
 
