@@ -18,9 +18,15 @@ except ImportError:
     pass  # python-dotenv not installed; use real environment variables
 
 app = Flask(__name__)
-app.config['SECRET_KEY']                     = os.environ.get('SECRET_KEY', 'dev-fallback-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI']        = 'sqlite:///ecommerce.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
+
+db_url = os.environ.get('DATABASE_URL', 'sqlite:///ecommerce.db')
+if db_url.startswith('postgres://'):
+    db_url = db_url.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
+
 csrf = CSRFProtect(app)
 
 # ── Razorpay keys — set these in a .env file, never commit them ──
@@ -552,8 +558,10 @@ def seed_products():
         print('Demo products seeded.')
 
 
+with app.app_context():
+    db.create_all()
+    seed_products()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-        seed_products()
-    app.run(debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', '0') == '1'
+    app.run(debug=debug_mode)
