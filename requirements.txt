@@ -6,3 +6,4 @@ flask-wtf==1.2.1
 flask-admin==1.6.1
 razorpay==1.4.2
 python-dotenv==1.0.1
+setuptools<81
