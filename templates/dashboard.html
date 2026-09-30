@@ -554,6 +554,7 @@
             {{ addr.city }} — {{ addr.pincode }}
           </div>
           <form method="POST" action="{{ url_for('delete_address', addr_id=addr.id) }}" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <button type="submit" class="address-del" title="Delete">✕</button>
           </form>
         </div>
@@ -567,7 +568,7 @@
       <div class="add-address-form">
         <div style="font-weight:600; margin-bottom:1rem; font-size:0.95rem;">+ Add New Address</div>
         <form method="POST" action="{{ url_for('add_address') }}">
-
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="addr-grid">
             <div class="form-group">
               <label>Label</label>
