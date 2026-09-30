@@ -10,6 +10,8 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from datetime import datetime
 from urllib.parse import urlparse
+from wtforms import FloatField
+from wtforms.validators import InputRequired
 
 try:
     from dotenv import load_dotenv
@@ -174,6 +176,7 @@ class ProductAdmin(SecureModelView):
     column_filters         = ['category', 'in_stock']
     column_editable_list   = ['price', 'in_stock', 'stock']
     column_sortable_list   = ['name', 'price', 'category']
+    form_extra_fields      = {'price': FloatField('Price (₹)', validators=[InputRequired()])}
     can_export = True
     page_size  = 25
 
