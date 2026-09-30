@@ -174,7 +174,7 @@ class ProductAdmin(SecureModelView):
     column_list            = ['id', 'name', 'category', 'price', 'stock', 'in_stock']
     column_searchable_list = ['name', 'category']
     column_filters         = ['category', 'in_stock']
-    column_editable_list   = ['price', 'in_stock', 'stock']
+    column_editable_list   = ['in_stock', 'stock']
     column_sortable_list   = ['name', 'price', 'category']
     form_extra_fields      = {'price': FloatField('Price (₹)', validators=[InputRequired()])}
     can_export = True
